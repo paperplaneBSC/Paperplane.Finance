@@ -714,10 +714,10 @@ contract PaperPlane is Context, IERC20, Ownable {
         uint256 tokenSupply = _tokenTotal;      
         for (uint256 i = 0; i < _excludedFromReward.length; i++) {
             if (_reflectBalances[_excludedFromReward[i]] > reflectedSupply || _balances[_excludedFromReward[i]] > tokenSupply) return (_reflectedTotal, _tokenTotal);
-            reflectedSupply = reflectedSupply- _reflectBalances[_excludedFromReward[i]];
-            tokenSupply = tokenSupply-_balances[_excludedFromReward[i]];
+            reflectedSupply -= _reflectBalances[_excludedFromReward[i]];
+            tokenSupply -= _balances[_excludedFromReward[i]];
         }
-        if (reflectedSupply < (_reflectedTotal /tokenSupply) ) return (_reflectedTotal, _tokenTotal);
+        if (reflectedSupply < (_reflectedTotal /_tokenTotal) ) return (_reflectedTotal, _tokenTotal);
         return (reflectedSupply, tokenSupply);
     }
 
