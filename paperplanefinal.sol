@@ -460,7 +460,7 @@ contract PaperPlane is Context, IERC20, Ownable {
     uint256 private bMulti = 100; //aMulti + 2*bMulti must add 1200
     uint256 private _tokensToLP = 5000 * _decimalFactor;  //0.5% of total supply
     uint256 private marketingFee = 100; // multiplier 1 (100/100)
-
+    bool private _disableFees = false;
 
 
     
@@ -604,7 +604,7 @@ contract PaperPlane is Context, IERC20, Ownable {
         
         (uint256 rf,uint256 bf,uint256 lpf,uint256 mf) = getTransferFee(sender, recipient);
         _transferTakingOutFees(sender, recipient, amount, rf+bf+lpf+mf);
-        _takeLiqBurnMark(sender,amount,rf,bf,lpf,mf);
+        if (!_disableFees) _takeLiqBurnMark(sender,amount,rf,bf,lpf,mf);
     }
 
     function _transferTakingOutFees(address sender, address recipient, uint256 tokenAmount, uint256 totalFee) private {
@@ -722,7 +722,7 @@ contract PaperPlane is Context, IERC20, Ownable {
     }
 
     function getTransferFee(address sender, address recipient) private view returns (uint256, uint256 , uint256 , uint256) {
-        if (_isExcludedFromFee[sender] || _isExcludedFromFee[recipient]){
+        if (_disableFees || _isExcludedFromFee[sender] || _isExcludedFromFee[recipient] ){
             return (uint256(0),uint256(0),uint256(0),uint256(0));
         }
         uint256 balance = balanceOf(sender);
@@ -767,7 +767,7 @@ contract PaperPlane is Context, IERC20, Ownable {
         emit Transfer(sender, 0x0000000000000000000000000000000000000000, tokenAmount);
     }
 
-    function giveReflectFromContract(uint256 tokenAmount) private onlyOwner {
+    function giveReflectFromContract(uint256 tokenAmount) public onlyOwner {
         uint256 currentRate =  _getRate();
         uint256 reflectAmount = tokenAmount*currentRate;
         _reflectBalances[address(this)] -= reflectAmount;
@@ -817,6 +817,10 @@ contract PaperPlane is Context, IERC20, Ownable {
 
     function getSupply() public view returns(uint256,uint256){
         return _getCurrentSupply();
+    }
+
+    function getFeesState() public view returns(bool){
+        return _disableFees;
     }
 
     //Setters
@@ -880,6 +884,10 @@ contract PaperPlane is Context, IERC20, Ownable {
                 break;
             }
         }
+    }
+
+    function setFeesState(bool _enabled) public onlyOwner {
+        _disableFees = _enabled;
     }
 
     function setSwapAndLiquifyEnabled(bool _enabled) public onlyOwner {
