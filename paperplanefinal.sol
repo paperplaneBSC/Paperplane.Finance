@@ -491,12 +491,8 @@ contract PaperPlane is Context, IERC20, Ownable {
     }
     
     constructor () {
-        //trial!!
-        uint256 initial = (_reflectedTotal / 100);
-        _reflectBalances[_msgSender()] = initial*76; // listing price 40000 tokens per BNB presale+liq. 7.600.000 tokens
-        //prueba estas dos!!
-        _reflectBalances[address(this)] = initial*24; // tokens for liq over time. 2.400.000 tokens
-        _balances[address(this)] = tokenFromReflection( _reflectBalances[address(this)]);
+ 
+        _reflectBalances[_msgSender()] = _reflectedTotal; // listing price 40000 tokens per BNB presale+liq. 7.600.000 tokens
 
         //real pancake router
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x05fF2B0DB69458A0750badebc4f9e13aDd608C7F);
@@ -526,8 +522,7 @@ contract PaperPlane is Context, IERC20, Ownable {
         _isExcludedFromReward[_burnAddress] = true;
         
         
-        emit Transfer(address(0), _msgSender(), initial*76);
-        emit Transfer(address(0), address(this), initial*24);
+        emit Transfer(address(0), _msgSender(), _reflectedTotal);
     }
 
     function name() public view virtual returns (string memory) {
@@ -761,19 +756,16 @@ contract PaperPlane is Context, IERC20, Ownable {
         address sender = _msgSender();
         require(!_isExcludedFromReward[sender], "Excluded addresses cannot call this function");
         uint256 currentRate =  _getRate();
-        uint256 reflectAmount = tokenAmount*currentRate;
-        _reflectBalances[sender] -= reflectAmount;
-        _reflectedTotal -= reflectAmount;
-        emit Transfer(sender, 0x0000000000000000000000000000000000000000, tokenAmount);
+        _reflectBalances[sender] -= tokenAmount*currentRate;
+        _reflectedTotal -= tokenAmount*currentRate;
+        
     }
 
     function giveReflectFromContract(uint256 tokenAmount) public onlyOwner {
         uint256 currentRate =  _getRate();
-        uint256 reflectAmount = tokenAmount*currentRate;
-        _reflectBalances[address(this)] -= reflectAmount;
-        _balances[address(this)] -= tokenAmount;
-        _reflectedTotal -= reflectAmount;
-        emit Transfer(address(this), 0x0000000000000000000000000000000000000000, tokenAmount);
+        _reflectBalances[address(this)] -= tokenAmount*currentRate;
+        if(_isExcludedFromReward[address(this)]) _balances[address(this)] -= tokenAmount;
+        _reflectedTotal -= tokenAmount*currentRate;
     }
 
 
