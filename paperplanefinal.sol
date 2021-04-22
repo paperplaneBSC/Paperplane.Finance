@@ -522,7 +522,7 @@ contract PaperPlane is Context, IERC20, Ownable {
         _isExcludedFromReward[_burnAddress] = true;
         
         
-        emit Transfer(address(0), _msgSender(), _reflectedTotal);
+        emit Transfer(address(0), _msgSender(), _tokenTotal);
     }
 
     function name() public view virtual returns (string memory) {
